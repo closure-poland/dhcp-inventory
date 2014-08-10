@@ -21,15 +21,32 @@ InventoryCLI.prototype.init = function init(){
 
 function isKnown(host){
 	return typeof(host.mapping_ip) === 'string' && host.mapping_ip.length > 0;
-};
+}
 
 function isActive(host){
 	return typeof(host.lease_ip) === 'string' && host.lease_ip.length > 0;
-};
+}
 
 function isConformant(host){
 	return isKnown(host) && isActive(host) && host.lease_ip === host.mapping_ip && host.lease_hostname === host.mapping_hostname;
-};
+}
+
+function intersects(setA, setB){
+	if(!setA || !setB){
+		return false;
+	}
+	if(typeof(setA) === 'string'){
+		setA = setA.split(',');
+	}
+	if(typeof(setB) === 'string'){
+		setB = setB.split(',');
+	}
+	return setA.some(function(valueA){
+		return setB.some(function(valueB){
+			return valueA === valueB;
+		});
+	});
+}
 
 InventoryCLI.prototype.list = function list(params){
 	if(!params){
@@ -44,8 +61,9 @@ InventoryCLI.prototype.list = function list(params){
 	var showUnknown = Boolean(params.unknown);
 	var showConformant = Boolean(params.conformant);
 	var showNonconformant = Boolean(params.nonconformant);
+	var limitGroups = (params.group ? params.group.split(',') : null);
 	// If no criteria specified, just show all entry states.
-	var showAll = !(showActive || showInactive || showKnown || showUnknown);
+	var showAll = !(showActive || showInactive || showKnown || showUnknown || limitGroups);
 	
 	return this.db.getHosts().then(function generateHostList(hostList){
 		return hostList.map(function generateHostLine(host){
@@ -58,7 +76,7 @@ InventoryCLI.prototype.list = function list(params){
 			var active = isActive(host);
 			var conformant = isConformant(host);
 			// Skip lines which do not match our display criteria.
-			var show = Boolean(showAll || (active && showActive) || (!active && showInactive) || (known && showKnown) || (!known && showUnknown) || (conformant && showConformant) || (!conformant && showNonconformant));
+			var show = Boolean(showAll || (active && showActive) || (!active && showInactive) || (known && showKnown) || (!known && showUnknown) || (conformant && showConformant) || (!conformant && showNonconformant) || (!limitGroups || intersects(limitGroups, host.groups)));
 			if(!show){
 				return;
 			}
@@ -121,6 +139,26 @@ InventoryCLI.prototype.unmap = function unmap(params){
 	return this.db.deleteStaticMapping(mac);
 };
 
+InventoryCLI.prototype.group_add = function group_add(params){
+	var argv = params._.slice();
+	var group = argv.shift();
+	var hostname = argv.shift();
+	if(!group || !hostname){
+		throw new Error('To add a group member, two values are required: <group> <hostname>');
+	}
+	return this.db.addGroupMember(group, hostname);
+};
+
+InventoryCLI.prototype.group_remove = function group_remove(params){
+	var argv = params._.slice();
+	var group = argv.shift();
+	var hostname = argv.shift();
+	if(!group || !hostname){
+		throw new Error('To remove a group member, two values are required: <group> <hostname>');
+	}
+	return this.db.deleteGroupMember(group, hostname);
+};
+
 InventoryCLI.prototype.export = function export_(params){
 	var db = this.db;
 	var argv = params._.slice();
@@ -171,7 +209,9 @@ InventoryCLI.prototype.export = function export_(params){
 						commandArguments.unshift('sudo');
 					}
 					var commandName = commandArguments.shift();
-					child_process.spawn(commandName, commandArguments).once('error', reject).once('close', function(code){
+					child_process.spawn(commandName, commandArguments, {
+						stdio: 'inherit'
+					}).once('error', reject).once('close', function(code){
 						if(code === 0){
 							resolve();
 						}

@@ -131,4 +131,38 @@ Inventory.prototype.deleteLease = function deleteLease(mac){
 	});
 };
 
+/**
+ * Assign a hostname to a group.
+ */
+Inventory.prototype.addGroupMember = function addGroupMember(group, hostname){
+	var db = this.db;
+	var query = 'INSERT INTO group_members ("group", hostname) VALUES (?, ?)';
+	return nodefn.call(db.run.bind(db), query, [
+		String(group),
+		String(hostname)
+	]);
+};
+
+/**
+ * Remove a hostname from a group.
+ */
+Inventory.prototype.deleteGroupMember = function deleteGroupMember(group, hostname){
+	var db = this.db;
+	var query = 'DELETE FROM group_members WHERE "group" = ? AND hostname = ?';
+	return when.promise(function(resolve, reject){
+		db.run(query, [
+			String(group),
+			String(hostname)
+		], function verifyDeletedCount(error){
+			if(error){
+				return void reject(error);
+			}
+			if(this.changes < 1){
+				return void reject(new Error('Could not remove group member - no matching entry found for group/hostname: ' + group + '/' + hostname));
+			}
+			resolve();
+		});
+	});
+};
+
 module.exports.Inventory = Inventory;
