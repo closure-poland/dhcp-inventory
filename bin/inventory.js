@@ -19,7 +19,7 @@ cli.init().then(function routeCommand(){
 		throw new Error('No such action: ' + action + '. Available actions: list, map, unmap.', 1);
 	}
 }).then(function displayCommandOutput(output){
-	if(typeof(output) !== 'undefined'){
+	if(typeof(output) !== 'undefined' && (typeof(output) !== 'string' || output.length > 0)){
 		console.log(output);
 	}
 }).catch(function handleError(error){

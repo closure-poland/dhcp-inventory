@@ -25,7 +25,7 @@ Inventory.prototype.open = function open(){
 };
 
 /**
- * Get an array of lease entries. These reflect actual IP addresses/hostnames granted by the DHCP server.
+ * Get an array of all host entries, whether declared or actual.
  */
 Inventory.prototype.getHosts = function getHosts(){
 	var db = this.db;
