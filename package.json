@@ -2,7 +2,6 @@
   "name": "dhcp-inventory",
   "version": "0.1.0",
   "description": "a dnsmasq helper for building a host inventory database",
-  "main": "dnsmasq.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,7 +15,7 @@
     "mac",
     "address"
   ],
-  "author": "Robert Kawecki",
+  "author": "Robert Kawecki <robert+npm@rkaw.pl>",
   "license": "MIT",
   "dependencies": {
     "colors": "^0.6.2",
