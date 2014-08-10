@@ -19,6 +19,7 @@
     "mac",
     "address"
   ],
+  "repository": "git@github.com:closure-poland/dhcp-inventory.git",
   "author": "Robert Kawecki <robert+npm@rkaw.pl>",
   "license": "MIT",
   "dependencies": {
