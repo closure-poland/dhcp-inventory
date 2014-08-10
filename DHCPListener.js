@@ -25,7 +25,9 @@ DHCPListener.prototype.old = function old(args, env){
 	var ip = args.shift();
 	var hostname = args.shift();
 	
-	return this.inventory.addLease(mac, ip, hostname).catch(/SQLITE_CONSTRAINT/, function(error){
+	return this.inventory.addLease(mac, ip, hostname).catch(function verifyError(error){
+		return error && error.message && /SQLITE_CONSTRAINT/.test(error.message);
+	}, function(error){
 		// Do nothing, since the lease was already in the inventory. It is assumed that we had placed it there.
 		//  Note that, in case we missed some updates, we could choose to update the lease.
 		//TODO: Implement lease updates when a collision occurs, to make sure that we are restart-safe even in case of dnsmasq config weirdness (i.e. missed updates).
