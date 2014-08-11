@@ -37,7 +37,7 @@ apt-get install dnsmasq
 For now, just clone the repository and install all dependencies:
 
 ```
-git clone git@github.com:closure-poland/dhcp-inventory.git
+git clone git://github.com/closure-poland/dhcp-inventory.git
 cd dhcp-inventory
 npm install
 ```
@@ -71,6 +71,12 @@ bin/inventory.js map 11:22:33:aa:bb:cc 1.2.3.5 another-host
 bin/inventory.js unmap 11:22:33:44:55:66
 # Export our mappings (only static, not temporary leases) to dnsmasq
 bin/inventory.js export --type dnsmasq --apply
+# Add a host to a group
+bin/inventory.js group_add testgroup another-host
+# Remove a host from a group
+bin/inventory.js group_remove testgroup another-host
+# Serve the inventory over HTTP for ansible clients - replace the IP address with your server's ansible-facing interface
+bin/ansible-http.js --http-host=192.168.0.1
 ```
 
 ## Host list format
